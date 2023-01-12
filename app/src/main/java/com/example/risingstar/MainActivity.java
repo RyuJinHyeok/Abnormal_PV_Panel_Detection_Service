@@ -13,21 +13,63 @@ import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
 
+import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
+import com.example.risingstar.databinding.ActivityMainBinding;
+
+import net.daum.mf.map.api.CameraUpdateFactory;
+import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
 
 
 public class MainActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener {
+
+    private ActivityMainBinding binding;
+
     private MapView mapView;
     private ViewGroup mapViewContainer;
+
+    private Button btn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
+        Log.d("notice", "OnCreate call");
+
+        // 권한 확인 및 동의
+        permissionCheck();
+
+        //지도 띄움
+        mapView = new MapView(this);
+        mapViewContainer = binding.mapView;
+        mapViewContainer.addView(mapView);
+        mapView.setMapViewEventListener(this);
+        mapView.setMapType(MapView.MapType.Satellite);
+        //mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
+
+        MapPoint testPoint = MapPoint.mapPointWithGeoCoord(34.53478333333333, 126.71063333);
+        MapPOIItem marker = new MapPOIItem();
+        marker.setItemName("hello");
+        marker.setMapPoint(testPoint);
+        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
+        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+
+        btn = binding.button;
+        btn.setOnClickListener(view -> {
+
+            mapView.addPOIItem(marker);
+            mapView.moveCamera(CameraUpdateFactory.newMapPoint(testPoint, -2));
+        });
+    }
+
+    private void permissionCheck() {
         // 권한ID를 가져옵니다
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET);
@@ -49,15 +91,6 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             }
             return;
         }
-
-        //지도를 띄우자
-        // java code
-        mapView = new MapView(this);
-        mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
-        mapViewContainer.addView(mapView);
-        mapView.setMapViewEventListener(this);
-        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
-
     }
 
     // 권한 체크 이후로직
