@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.core.content.ContextCompat;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.Manifest;
 
@@ -13,18 +15,12 @@ import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
 
-import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import com.example.risingstar.databinding.ActivityMainBinding;
 
-import net.daum.mf.map.api.CameraUpdateFactory;
-import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
-
 
 public class MainActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener {
 
@@ -33,15 +29,17 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private MapView mapView;
     private ViewGroup mapViewContainer;
 
-    private Button btn;
+    private int imageCount;
+    private ViewPager2 viewPager;
+    private FragmentStateAdapter pagerAdapter;
+
+    private Location[] locations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        Log.d("notice", "OnCreate call");
 
         // 권한 확인 및 동의
         permissionCheck();
@@ -52,25 +50,45 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         mapViewContainer.addView(mapView);
         mapView.setMapViewEventListener(this);
         mapView.setMapType(MapView.MapType.Satellite);
-        //mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
 
-        MapPoint testPoint = MapPoint.mapPointWithGeoCoord(34.53478333333333, 126.71063333);
-        MapPOIItem marker = new MapPOIItem();
-        marker.setItemName("hello");
-        marker.setMapPoint(testPoint);
-        marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
-        marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
+        // 현재 위치 띄우기
+        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
 
-        btn = binding.button;
-        btn.setOnClickListener(view -> {
 
-            mapView.addPOIItem(marker);
-            mapView.moveCamera(CameraUpdateFactory.newMapPoint(testPoint, -2));
+        // 변수 설정
+        imageCount = 2;
+        ImageInfoFragment.mapView = mapView;
+        locations = new Location[imageCount];
+
+        // locations 배열에 위치 정보 입력
+        locations[0] = new Location(34.53478333333333, 126.71063333);
+        locations[1] = new Location(34.76256111111111, 127.24103611111111);
+
+        // viewPager, pagerAdapter 설정
+        viewPager = binding.viewPager;
+        pagerAdapter = new MyAdapter(this, imageCount, locations);
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+
+        viewPager.setCurrentItem(0);
+        viewPager.setOffscreenPageLimit(imageCount);
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels);
+                if (positionOffsetPixels == 0) {
+                    viewPager.setCurrentItem(position);
+                }
+            }
         });
+
     }
 
+
+
     private void permissionCheck() {
-        // 권한ID를 가져옵니다
+        // 권한 ID 가져옴
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET);
 
