@@ -36,6 +36,7 @@ dependencies {
 
     implementation "androidx.viewpager2:viewpager2:1.0.0"
     implementation 'com.opencsv:opencsv:5.6'
+    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
 
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.7.0'

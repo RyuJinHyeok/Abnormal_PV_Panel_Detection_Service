@@ -1,5 +1,6 @@
 package com.example.risingstar;
 
+import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -11,8 +12,12 @@ import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import android.widget.Button;
 import android.widget.ImageView;
+
+import com.davemorrissey.labs.subscaleview.ImageSource;
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 
 import net.daum.mf.map.api.CameraUpdateFactory;
 import net.daum.mf.map.api.MapPoint;
@@ -31,22 +36,19 @@ public class ImageInfoFragment extends Fragment {
     public static MapView mapView;
 
     private ImageView imageView;
-    private Button moveBtn;
+    private Button moveBtn, zoomBtn;
 
-    private static String NUM = "fragment_num";
     private static String DATAINFO = "DataInfo";
 
-    private int num;
     private DataInfo dataInfo;
 
     public ImageInfoFragment() {
         // Required empty public constructor
     }
 
-    public static ImageInfoFragment newInstance(int num, DataInfo d) {
+    public static ImageInfoFragment newInstance(DataInfo d) {
         ImageInfoFragment fragment = new ImageInfoFragment();
         Bundle args = new Bundle();
-        args.putInt(NUM, num);
         args.putSerializable(DATAINFO, d);
         fragment.setArguments(args);
         return fragment;
@@ -56,7 +58,6 @@ public class ImageInfoFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            num = getArguments().getInt(NUM);
             dataInfo = (DataInfo) getArguments().getSerializable(DATAINFO);
         }
     }
@@ -70,13 +71,33 @@ public class ImageInfoFragment extends Fragment {
 
         imageView = v.findViewById(R.id.image);
         moveBtn = v.findViewById(R.id.moveBtn);
+        zoomBtn = v.findViewById(R.id.zoomBtn);
+
+        // 이미지 불러오기
+        imageView.setImageBitmap(loadImage(dataInfo.getFileName()));
 
         moveBtn.setOnClickListener(view -> {
             movePosition();
         });
 
-        // 이미지 불러오기
-        loadImage(dataInfo.getFileName());
+        zoomBtn.setOnClickListener(view -> {
+
+            // 파일 이름 formatting
+            String IRName = dataInfo.getFileName();
+
+            int num = Integer.parseInt(IRName.substring(2, 5)) + 1;
+            String RGBName;
+
+            if (num / 10 == 0) RGBName = "00" + num;    // 한자리수 처리
+            else if (num / 100 == 0) RGBName = "0" + num;   // 두자리수 처리
+            else RGBName = "" + num;    // 세자리수 처리
+
+            RGBName = "00" + RGBName + ".JPG";
+
+
+            // dialog 띄우기
+            showDialog(IRName, RGBName);
+        });
 
         return v;
     }
@@ -115,19 +136,19 @@ public class ImageInfoFragment extends Fragment {
         mapView.moveCamera(CameraUpdateFactory.newMapPointBounds(mapPointBounds, padding));
     }
 
-    private void loadImage(String imageString) {
+    // 파일을 읽어서 이미지 리턴
+    private Bitmap loadImage(String imageString) {
         String root = Environment.getExternalStorageDirectory().toString();
         File myDir = new File(root + "/HackathonData");
 
         FileInputStream fis = null;
         BufferedInputStream buf = null;
+        Bitmap bitmap = null;
         String name = myDir + "/" + imageString;
         try {
             fis = new FileInputStream(name);
             buf = new BufferedInputStream(fis);
-
-            Bitmap bitmap = BitmapFactory.decodeStream(buf);
-            imageView.setImageBitmap(bitmap);
+            bitmap = BitmapFactory.decodeStream(buf);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -138,5 +159,22 @@ public class ImageInfoFragment extends Fragment {
                 e.printStackTrace();
             }
         }
+
+        return bitmap;
+    }
+
+    // dialog 띄우기
+    private void showDialog(String IRName, String RGBName) {
+
+        Dialog dialog = new Dialog(this.getContext());
+        dialog.setContentView(R.layout.dialog_layout);
+
+        SubsamplingScaleImageView IRView = dialog.findViewById(R.id.IRView);
+        SubsamplingScaleImageView RGBView = dialog.findViewById(R.id.RGBView);
+
+        IRView.setImage(ImageSource.bitmap(loadImage(IRName)));
+        RGBView.setImage(ImageSource.bitmap(loadImage(RGBName)));
+
+        dialog.show();
     }
 }
