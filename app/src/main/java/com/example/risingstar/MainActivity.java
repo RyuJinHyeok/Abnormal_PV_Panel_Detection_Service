@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener {
 
@@ -42,12 +43,11 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private RadioGroup radioGroup;
     private RadioButton normalBox, abnormalBox;
 
-    private int normalDataCnt, abnormalDataCnt;
-
     private ViewPager2 viewPager;
     private FragmentStateAdapter pagerAdapter;
 
     //private Image[]
+    private int normalDataCnt = 0, abnormalDataCnt = 0;
     private Location[] normalLocations, abnormalLocations;
 
     @Override
@@ -56,12 +56,17 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // 뷰 바인딩
+        mapViewContainer = binding.mapView;
+        radioGroup = binding.radioGroup;
+        normalBox = binding.normal;
+        abnormalBox = binding.abnormal;
+
         // 권한 확인 및 동의
         permissionCheck();
 
         //지도 띄움
         mapView = new MapView(this);
-        mapViewContainer = binding.mapView;
         mapViewContainer.addView(mapView);
         mapView.setMapViewEventListener(this);
         mapView.setMapType(MapView.MapType.Satellite);
@@ -69,25 +74,19 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         // 현재 위치 띄우기
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
 
+        // 데이터 불러오기
+        try {
+            loadData();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CsvException e) {
+            e.printStackTrace();
+        }
+
         // 변수 설정
-        normalDataCnt = 2;
-        abnormalDataCnt = 2;
         ImageInfoFragment.mapView = mapView;
-        normalLocations = new Location[normalDataCnt];
-        abnormalLocations = new Location[abnormalDataCnt];
 
-        // locations 배열에 위치 정보 입력
-        normalLocations[0] = new Location(34.53478333333333, 126.71063333);
-        normalLocations[1] = new Location(34.76256111111111, 127.24103611111111);
-
-        abnormalLocations[0] = new Location(34.53478333333333, 126.71063333);
-        abnormalLocations[1] = new Location(34.76256111111111, 127.24103611111111);
-
-
-        radioGroup = binding.radioGroup;
-        normalBox = binding.normal;
-        abnormalBox = binding.abnormal;
-
+        // viewPager 띄우기
         setViewPager(true);
         radioGroup.setOnCheckedChangeListener((radioGroup, i) -> {
             setViewPager(normalBox.isChecked());
@@ -96,14 +95,25 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
     // csv 파일 읽어옴
     private void loadData() throws IOException, CsvException {
+
         AssetManager assetManager = this.getAssets();
-        InputStream inputStream = assetManager.open("hospital.csv");
-        CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream, "EUC-KR"));
+        InputStream inputStream = assetManager.open("sample.csv");
+        CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream));
 
         List<String[]> allContent = csvReader.readAll();
+
+        normalLocations = new Location[allContent.size()];
+        abnormalLocations = new Location[allContent.size()];
+
         for(String content[] : allContent){
             StringBuilder sb = new StringBuilder("");
-            Log.d("csv", content[19] + " 병원명: " + content[21] + " X: " + content[26] + " Y: " + content[27] );
+
+            if (content[0].equals("1")) {
+                normalLocations[normalDataCnt++] = new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2]));
+            } else {
+                abnormalLocations[abnormalDataCnt++] = new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2]));
+            }
+            Log.d("csv", "latitude: " + content[1] + " longitude: " + content[2] );
         }
     }
 
