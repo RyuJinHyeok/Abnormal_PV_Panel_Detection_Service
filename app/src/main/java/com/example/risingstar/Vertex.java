@@ -1,9 +1,10 @@
 package com.example.risingstar;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Vertex {
+public class Vertex implements Serializable {
 
     private Location RT, LT, RB, LB;
 

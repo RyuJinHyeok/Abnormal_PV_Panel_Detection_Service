@@ -16,7 +16,6 @@ import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
 
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private FragmentStateAdapter pagerAdapter;
 
     private int normalDataCnt = 0, abnormalDataCnt = 0;
-    private MetaData[] normalData, abnormalData;
+    private Vertex[] normalData, abnormalData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,33 +100,27 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
         List<String[]> allContent = csvReader.readAll();
 
-        normalData = new MetaData[allContent.size()];
-        abnormalData = new MetaData[allContent.size()];
+        normalData = new Vertex[allContent.size()];
+        abnormalData = new Vertex[allContent.size()];
 
         for(String content[] : allContent){
             StringBuilder sb = new StringBuilder("");
 
             if (content[0].equals("1")) {
                 normalData[normalDataCnt++] =
-                        new MetaData(
+                        new Vertex(
                                 new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2])),
-                                new Vertex(
-                                        new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
-                                        new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
-                                        new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8])),
-                                        new Location(Double.parseDouble(content[9]), Double.parseDouble(content[10]))
-                                )
+                                new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
+                                new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
+                                new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8]))
                         );
             } else {
                 abnormalData[abnormalDataCnt++] =
-                        new MetaData(
+                        new Vertex(
                                 new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2])),
-                                new Vertex(
-                                        new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
-                                        new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
-                                        new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8])),
-                                        new Location(Double.parseDouble(content[9]), Double.parseDouble(content[10]))
-                                )
+                                new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
+                                new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
+                                new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8]))
                         );
             }
         }
