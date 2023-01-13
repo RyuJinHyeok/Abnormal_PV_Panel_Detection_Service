@@ -11,16 +11,27 @@ import android.Manifest;
 
 import android.content.pm.PackageManager;
 
+import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.example.risingstar.databinding.ActivityMainBinding;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapView;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener {
 
@@ -28,12 +39,16 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
     private MapView mapView;
     private ViewGroup mapViewContainer;
+    private RadioGroup radioGroup;
+    private RadioButton normalBox, abnormalBox;
 
-    private int imageCount;
+    private int normalDataCnt, abnormalDataCnt;
+
     private ViewPager2 viewPager;
     private FragmentStateAdapter pagerAdapter;
 
-    private Location[] locations;
+    //private Image[]
+    private Location[] normalLocations, abnormalLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,24 +69,56 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         // 현재 위치 띄우기
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
 
-
         // 변수 설정
-        imageCount = 2;
+        normalDataCnt = 2;
+        abnormalDataCnt = 2;
         ImageInfoFragment.mapView = mapView;
-        locations = new Location[imageCount];
+        normalLocations = new Location[normalDataCnt];
+        abnormalLocations = new Location[abnormalDataCnt];
 
         // locations 배열에 위치 정보 입력
-        locations[0] = new Location(34.53478333333333, 126.71063333);
-        locations[1] = new Location(34.76256111111111, 127.24103611111111);
+        normalLocations[0] = new Location(34.53478333333333, 126.71063333);
+        normalLocations[1] = new Location(34.76256111111111, 127.24103611111111);
 
+        abnormalLocations[0] = new Location(34.53478333333333, 126.71063333);
+        abnormalLocations[1] = new Location(34.76256111111111, 127.24103611111111);
+
+
+        radioGroup = binding.radioGroup;
+        normalBox = binding.normal;
+        abnormalBox = binding.abnormal;
+
+        setViewPager(true);
+        radioGroup.setOnCheckedChangeListener((radioGroup, i) -> {
+            setViewPager(normalBox.isChecked());
+        });
+    }
+
+    // csv 파일 읽어옴
+    private void loadData() throws IOException, CsvException {
+        AssetManager assetManager = this.getAssets();
+        InputStream inputStream = assetManager.open("hospital.csv");
+        CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream, "EUC-KR"));
+
+        List<String[]> allContent = csvReader.readAll();
+        for(String content[] : allContent){
+            StringBuilder sb = new StringBuilder("");
+            Log.d("csv", content[19] + " 병원명: " + content[21] + " X: " + content[26] + " Y: " + content[27] );
+        }
+    }
+
+    // viewPager 띄우기
+    private void setViewPager(boolean isNormalChecked) {
         // viewPager, pagerAdapter 설정
         viewPager = binding.viewPager;
-        pagerAdapter = new MyAdapter(this, imageCount, locations);
+        pagerAdapter = new MyAdapter(this,
+                isNormalChecked ? normalDataCnt : abnormalDataCnt,
+                isNormalChecked ? normalLocations : abnormalLocations);
         viewPager.setAdapter(pagerAdapter);
         viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
 
         viewPager.setCurrentItem(0);
-        viewPager.setOffscreenPageLimit(imageCount);
+        viewPager.setOffscreenPageLimit(isNormalChecked ? normalDataCnt : abnormalDataCnt);
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -82,11 +129,9 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                 }
             }
         });
-
     }
 
-
-
+    // 권한 체크
     private void permissionCheck() {
         // 권한 ID 가져옴
         int permission = ContextCompat.checkSelfPermission(this,

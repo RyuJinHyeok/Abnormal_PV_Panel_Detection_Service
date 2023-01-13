@@ -20,7 +20,7 @@ public class MyAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
 
-        return ImageInfoFragment.newInstance(position + 1, "#00BCD4", mLocations[position]);
+        return ImageInfoFragment.newInstance(position + 1, mLocations[position]);
 
     }
 
