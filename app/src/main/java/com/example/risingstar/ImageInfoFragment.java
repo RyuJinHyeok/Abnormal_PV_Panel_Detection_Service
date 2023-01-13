@@ -92,7 +92,7 @@ public class ImageInfoFragment extends Fragment {
             else if (num / 100 == 0) RGBName = "0" + num;   // 두자리수 처리
             else RGBName = "" + num;    // 세자리수 처리
 
-            RGBName = "00" + RGBName + ".JPG";
+            RGBName = "00" + RGBName + ".jpg";
 
 
             // dialog 띄우기

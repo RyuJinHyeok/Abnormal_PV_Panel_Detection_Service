@@ -13,6 +13,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 
 import android.content.res.AssetManager;
+
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.example.risingstar.databinding.ActivityMainBinding;
 import com.opencsv.CSVReader;
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         // viewPager 띄우기
         setViewPager(true);
         radioGroup.setOnCheckedChangeListener((radioGroup, i) -> {
+            Toast.makeText(this, "데이터를 불러오는 중 입니다...\n잠시만 기다려 주세요.", Toast.LENGTH_SHORT).show();
             setViewPager(normalBox.isChecked());
         });
 
@@ -94,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
         try {
             AssetManager assetManager = this.getAssets();
-            InputStream inputStream = assetManager.open("origin.csv");
+            InputStream inputStream = assetManager.open("REAL_FInal.csv");
             CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream));
 
             List<String[]> allContent = csvReader.readAll();
@@ -105,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             for(String content[] : allContent){
                 StringBuilder sb = new StringBuilder("");
 
-                if (content[1].equals("1")) {
+                if (content[1].equals("0")) {
                     normalData[normalDataCnt++] =
                             new DataInfo(
                                     content[0],
@@ -143,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
         // 데이터가 없으면 함수 종료
         if (cnt == 0) return;
+
 
         // 데이터가 있으면 데이터를 viewPager를 이용하여 띄운다
         binding.defaultView.setVisibility(View.INVISIBLE);
