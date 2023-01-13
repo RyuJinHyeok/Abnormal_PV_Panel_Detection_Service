@@ -1,23 +1,21 @@
 package com.example.risingstar;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
 
-public class Vertex implements Serializable {
+public class DataInfo implements Serializable {
 
+    private String fileName;
     private Location RT, LT, RB, LB;
 
-    public Vertex(Location rt, Location lt, Location rb, Location lb) {
+    public DataInfo(String name, Location rt, Location lt, Location rb, Location lb) {
+        fileName = name;
         RT = rt;
         LT = lt;
         RB = rb;
         LB = lb;
     }
 
-    public ArrayList<Location> getLocations() {
-        return new ArrayList<>(Arrays.asList(RT, LT, RB, LB));
-    }
+    public String getFileName() { return fileName; }
 
     public Location getRT() { return RT; }
 

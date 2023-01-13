@@ -1,50 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/viewPage"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="bottom"
     tools:context=".ImageInfoFragment">
 
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="wrap_content"
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:text="Image1"
-        android:textSize="20sp"/>
+        android:layout_gravity="center_horizontal"/>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true">
+        android:orientation="horizontal"
+        android:gravity="center">
 
-        <ImageView
-            android:id="@+id/image"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_centerInParent="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <Button
+            android:id="@+id/moveBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:backgroundTint="@color/purple_500"
+            android:text="이동하기"
+            android:textColor="@color/white" />
 
-    </RelativeLayout>
+        <Button
+            android:id="@+id/zoomBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:backgroundTint="@color/purple_500"
+            android:text="확대해서 보기"
+            android:textColor="@color/white" />
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:backgroundTint="@color/purple_500"
-        android:text="이동하기"
-        android:textColor="@color/white" />
 
-</RelativeLayout>
+    </LinearLayout>
+
+
+
+</LinearLayout>

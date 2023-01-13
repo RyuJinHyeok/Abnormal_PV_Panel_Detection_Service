@@ -3,6 +3,7 @@ package com.example.risingstar;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
@@ -46,13 +47,15 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private FragmentStateAdapter pagerAdapter;
 
     private int normalDataCnt = 0, abnormalDataCnt = 0;
-    private Vertex[] normalData, abnormalData;
+    private DataInfo[] normalData, abnormalData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MODE_PRIVATE);
 
         // 뷰 바인딩
         mapViewContainer = binding.mapView;
@@ -73,13 +76,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
 
         // 데이터 불러오기
-        try {
-            loadData();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (CsvException e) {
-            e.printStackTrace();
-        }
+        loadData();
 
         // 변수 설정
         ImageInfoFragment.mapView = mapView;
@@ -89,40 +86,49 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         radioGroup.setOnCheckedChangeListener((radioGroup, i) -> {
             setViewPager(normalBox.isChecked());
         });
+
     }
 
     // csv 파일 읽어옴
-    private void loadData() throws IOException, CsvException {
+    private void loadData() {
 
-        AssetManager assetManager = this.getAssets();
-        InputStream inputStream = assetManager.open("sample.csv");
-        CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream));
+        try {
+            AssetManager assetManager = this.getAssets();
+            InputStream inputStream = assetManager.open("origin.csv");
+            CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream));
 
-        List<String[]> allContent = csvReader.readAll();
+            List<String[]> allContent = csvReader.readAll();
 
-        normalData = new Vertex[allContent.size()];
-        abnormalData = new Vertex[allContent.size()];
+            normalData = new DataInfo[allContent.size()];
+            abnormalData = new DataInfo[allContent.size()];
 
-        for(String content[] : allContent){
-            StringBuilder sb = new StringBuilder("");
+            for(String content[] : allContent){
+                StringBuilder sb = new StringBuilder("");
 
-            if (content[0].equals("1")) {
-                normalData[normalDataCnt++] =
-                        new Vertex(
-                                new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2])),
-                                new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
-                                new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
-                                new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8]))
-                        );
-            } else {
-                abnormalData[abnormalDataCnt++] =
-                        new Vertex(
-                                new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2])),
-                                new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
-                                new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
-                                new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8]))
-                        );
+                if (content[1].equals("1")) {
+                    normalData[normalDataCnt++] =
+                            new DataInfo(
+                                    content[0],
+                                    new Location(Double.parseDouble(content[2]), Double.parseDouble(content[3])),
+                                    new Location(Double.parseDouble(content[4]), Double.parseDouble(content[5])),
+                                    new Location(Double.parseDouble(content[6]), Double.parseDouble(content[7])),
+                                    new Location(Double.parseDouble(content[8]), Double.parseDouble(content[9]))
+                            );
+                } else {
+                    abnormalData[abnormalDataCnt++] =
+                            new DataInfo(
+                                    content[0],
+                                    new Location(Double.parseDouble(content[2]), Double.parseDouble(content[3])),
+                                    new Location(Double.parseDouble(content[4]), Double.parseDouble(content[5])),
+                                    new Location(Double.parseDouble(content[6]), Double.parseDouble(content[7])),
+                                    new Location(Double.parseDouble(content[8]), Double.parseDouble(content[9]))
+                            );
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CsvException e) {
+            e.printStackTrace();
         }
     }
 
@@ -135,18 +141,19 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         // 데이터 개수 확인
         int cnt = isNormalChecked ? normalDataCnt : abnormalDataCnt;
 
-        // 데이터가 있으면 데이터를 viewPager를 이용하여 띄운다
-        if (cnt != 0) {
-            binding.defaultView.setVisibility(View.INVISIBLE);
+        // 데이터가 없으면 함수 종료
+        if (cnt == 0) return;
 
-            // viewPager, pagerAdapter 설정
-            viewPager = binding.viewPager;
-            pagerAdapter = new MyAdapter(this, cnt, isNormalChecked ? normalData : abnormalData);
-            viewPager.setAdapter(pagerAdapter);
-            viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-            viewPager.setCurrentItem(0);
-            viewPager.setOffscreenPageLimit(cnt);
-        }
+        // 데이터가 있으면 데이터를 viewPager를 이용하여 띄운다
+        binding.defaultView.setVisibility(View.INVISIBLE);
+
+        // viewPager, pagerAdapter 설정
+        viewPager = binding.viewPager;
+        pagerAdapter = new MyAdapter(this, cnt, isNormalChecked ? normalData : abnormalData);
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+        viewPager.setCurrentItem(0);
+        viewPager.setOffscreenPageLimit(cnt);
 
         // viewPager 스크롤 이벤트 처리
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -207,6 +214,9 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             }
         }
     }
+
+
+    // interface 함수들
 
     @Override
     public void onCurrentLocationUpdate(MapView mapView, MapPoint mapPoint, float v) {
