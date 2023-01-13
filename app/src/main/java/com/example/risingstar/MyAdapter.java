@@ -8,20 +8,18 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 public class MyAdapter extends FragmentStateAdapter {
 
     private int mCount;
-    private Location[] mLocations;
+    private MetaData[] mData;
 
-    public MyAdapter(FragmentActivity fragmentActivity, int count, Location[] locations) {
+    public MyAdapter(FragmentActivity fragmentActivity, int count, MetaData[] data) {
         super(fragmentActivity);
         mCount = count;
-        mLocations = locations;
+        mData = data;
     }
 
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-
-        return ImageInfoFragment.newInstance(position + 1, mLocations[position]);
-
+        return ImageInfoFragment.newInstance(position + 1, mData[position]);
     }
 
     @Override

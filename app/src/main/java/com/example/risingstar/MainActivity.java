@@ -17,6 +17,7 @@ import android.os.Build.VERSION;
 import android.os.Bundle;
 
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -32,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapView.MapViewEventListener {
 
@@ -46,9 +46,8 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private ViewPager2 viewPager;
     private FragmentStateAdapter pagerAdapter;
 
-    //private Image[]
     private int normalDataCnt = 0, abnormalDataCnt = 0;
-    private Location[] normalLocations, abnormalLocations;
+    private MetaData[] normalData, abnormalData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,34 +101,61 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
         List<String[]> allContent = csvReader.readAll();
 
-        normalLocations = new Location[allContent.size()];
-        abnormalLocations = new Location[allContent.size()];
+        normalData = new MetaData[allContent.size()];
+        abnormalData = new MetaData[allContent.size()];
 
         for(String content[] : allContent){
             StringBuilder sb = new StringBuilder("");
 
             if (content[0].equals("1")) {
-                normalLocations[normalDataCnt++] = new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2]));
+                normalData[normalDataCnt++] =
+                        new MetaData(
+                                new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2])),
+                                new Vertex(
+                                        new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
+                                        new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
+                                        new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8])),
+                                        new Location(Double.parseDouble(content[9]), Double.parseDouble(content[10]))
+                                )
+                        );
             } else {
-                abnormalLocations[abnormalDataCnt++] = new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2]));
+                abnormalData[abnormalDataCnt++] =
+                        new MetaData(
+                                new Location(Double.parseDouble(content[1]), Double.parseDouble(content[2])),
+                                new Vertex(
+                                        new Location(Double.parseDouble(content[3]), Double.parseDouble(content[4])),
+                                        new Location(Double.parseDouble(content[5]), Double.parseDouble(content[6])),
+                                        new Location(Double.parseDouble(content[7]), Double.parseDouble(content[8])),
+                                        new Location(Double.parseDouble(content[9]), Double.parseDouble(content[10]))
+                                )
+                        );
             }
-            Log.d("csv", "latitude: " + content[1] + " longitude: " + content[2] );
         }
     }
 
     // viewPager 띄우기
     private void setViewPager(boolean isNormalChecked) {
-        // viewPager, pagerAdapter 설정
-        viewPager = binding.viewPager;
-        pagerAdapter = new MyAdapter(this,
-                isNormalChecked ? normalDataCnt : abnormalDataCnt,
-                isNormalChecked ? normalLocations : abnormalLocations);
-        viewPager.setAdapter(pagerAdapter);
-        viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
 
-        viewPager.setCurrentItem(0);
-        viewPager.setOffscreenPageLimit(isNormalChecked ? normalDataCnt : abnormalDataCnt);
+        // 초기화
+        binding.defaultView.setVisibility(View.VISIBLE);
 
+        // 데이터 개수 확인
+        int cnt = isNormalChecked ? normalDataCnt : abnormalDataCnt;
+
+        // 데이터가 있으면 데이터를 viewPager를 이용하여 띄운다
+        if (cnt != 0) {
+            binding.defaultView.setVisibility(View.INVISIBLE);
+
+            // viewPager, pagerAdapter 설정
+            viewPager = binding.viewPager;
+            pagerAdapter = new MyAdapter(this, cnt, isNormalChecked ? normalData : abnormalData);
+            viewPager.setAdapter(pagerAdapter);
+            viewPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
+            viewPager.setCurrentItem(0);
+            viewPager.setOffscreenPageLimit(cnt);
+        }
+
+        // viewPager 스크롤 이벤트 처리
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
